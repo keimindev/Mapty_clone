@@ -85,8 +85,12 @@ class App {
   #workouts = [];
   //생성자 메소드
   constructor(){
+    //Get user's position
     //동적인 this를 가진다
     this._getPosition();
+
+    //Get data from Local storage
+    this._getLocalStorage();
     form.addEventListener('submit', this._newWorkout.bind(this)); 
     //bind는 새로운 함수를 생성한다.this keyword를 설정하고 인자들은 바인드된 함수의 인수에 제공된다.
     inputType.addEventListener('change', this._toggleElevationField);
@@ -116,6 +120,13 @@ class App {
   
     //Handling clicks on map
     this.#map.on('click', this._showForm.bind(this))
+
+    //#workouts 배열에 들어가있는 data를 foreach 하나씩 다시 넣어주는것 
+    this.#workouts.forEach(work => {
+     //marker은 여기서 바로 로딩이 안된다. 일단 map부터 로딩이 되야함.
+      this.renderWorkoutMarker(work);
+    //local storage에서온 data는 prototype chain이 아니라 뉴 array다 
+   });
   }
 
 
@@ -180,7 +191,7 @@ class App {
 
    //Add new object to workout array
     this.#workouts.push(workout);
-    console.log(workout)
+
    //Render workout on map as market
    this.renderWorkoutMarker(workout);
    //Render workout on list
@@ -188,6 +199,9 @@ class App {
 
    //Hide form + clear input fields
    this._hideForm();
+
+   //Set Local Storage to all Workouts
+   this._setLocalStorage();
 
   }
 
@@ -277,8 +291,30 @@ class App {
   });
 
   //using the public interface
-  workout.click();
+  // workout.click();
  }  
+
+ _setLocalStorage(){
+   localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+ }
+ _getLocalStorage(){
+   const data = JSON.parse(localStorage.getItem('workouts'));
+
+   if(!data) return;
+
+   this.#workouts = data;
+
+   //#workouts 배열에 들어가있는 data를 foreach 하나씩 다시 넣어주는것 
+   this.#workouts.forEach(work => {
+     this._renderWorkout(work);
+     //marker은 여기서 바로 로딩이 안된다. 일단 map부터 로딩이 되야함. 그래서 map이 로드될 때로 올려줘야함.
+    //  this._renderWorkoutMarker(work);
+   });
+ }
+ reset(){
+   localStorage.removeItem('workouts');
+   location.reload();
+ }
 }
 
 
